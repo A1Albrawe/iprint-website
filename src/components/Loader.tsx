@@ -29,7 +29,7 @@ export default function Loader() {
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           >
             <Image 
-              src="/about-image.png" 
+              src="/loading-image.png" 
               alt="Loading" 
               width={200} 
               height={100} 

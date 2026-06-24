@@ -14,19 +14,16 @@ export default async function Gallery(
 
   // Placeholders that can be replaced via CMS
   const images = [
-    { id: 112, url: '/images/company.jpg', title: 'Design 1' },
+    { id: 112, url: '/images/company.jpg', title: 'Design 0' },
     { id: 111, url: '/images/company-2.jpg', title: 'Design 1' },
-    { id: 1, url: '/images/company-3.jpg', title: 'Design 1' },
-    { id: 0, url: '/images/af1.jpeg', title: 'Design 0' },
-    { id: 2, url: '/images/af2.jpg', title: 'Design 2' },
-    { id: 3, url: '/images/af3.jpg', title: 'Design 3' },
+    { id: 1, url: '/images/company-3.jpg', title: 'Design 2' },
+    { id: 0, url: '/images/af1.jpeg', title: 'Design 3' },
     { id: 4, url: '/images/af4.jpg', title: 'Design 4' },
     { id: 5, url: '/images/af5.jpg', title: 'Design 5' },
     { id: 6, url: '/images/af6.jpg', title: 'Design 6' },
     { id: 7, url: '/images/roll-1.jpg', title: 'Design 7' },
     { id: 8, url: '/images/roll-2.jpg', title: 'Design 8' },
     { id: 9, url: '/images/roll-3.jpg', title: 'Design 9' },
-    { id: 10, url: '/images/roll-4.jpg', title: 'Design 10' },
     { id: 11, url: '/images/roll-5.jpg', title: 'Design 11' },
     { id: 12, url: '/images/roll-6.jpg', title: 'Design 12' },
     { id: 13, url: '/images/gift-1.jpeg', title: 'Design 13' },

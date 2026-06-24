@@ -34,6 +34,7 @@ export default function Navbar() {
     { href: "/", label: t("home") },
     { href: "/gallery", label: t("gallery") },
     { href: "/contact", label: t("contact") },
+    { href: "/studio", label: t("studio-mekar") },
     { href: "/about", label: t("about") },
   ];
 
