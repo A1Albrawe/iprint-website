@@ -14,15 +14,18 @@
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^12.40.0",
-    "lucide-react": "^1.17.0",
+    "framer-motion": "^12.42.0",
+    "lucide-react": "^1.21.0",
     "next": "latest",
     "next-intl": "^4.13.0",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-icons": "^5.6.0",
     "react-rnd": "^10.5.3",
-    "tailwind-merge": "^3.6.0"
+    "recharts": "^3.9.0",
+    "tailwind-merge": "^3.6.0",
+    "ua-parser-js": "^2.0.10"
   },
   "devDependencies": {
     "@formatjs/cli": "^6.16.11",

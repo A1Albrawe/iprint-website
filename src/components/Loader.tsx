@@ -10,33 +10,50 @@ export default function Loader() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // إظهار اللودر عند تغيير المسار
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 1000); 
+    const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
   }, [pathname]);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {loading && (
         <motion.div
-          initial={{ opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50 dark:bg-slate-950"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-white dark:bg-slate-950 transition-colors duration-300"
         >
-          <motion.div
-            animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Image 
-              src="/loading-image.png" 
-              alt="Loading" 
-              width={200} 
-              height={100} 
-              priority={true} // الأولوية القصوى لمنع التحذيرات
-              className="w-auto h-auto" // حل مشكلة الأبعاد في سجلات النظام
-            />
-          </motion.div>
+          {/* شريط التقدم في الأعلى */}
+          <motion.div 
+            className="absolute top-0 start-0 h-1.5 bg-blue-600"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+          />
+
+          <div className="flex flex-col items-center gap-8">
+            {/* اللوجو مع تأثير تكبير خفيف */}
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              transition={{ repeat: Infinity, repeatType: "reverse", duration: 1.5 }}
+              className="w-[280px] md:w-[350px]"
+            >
+              <Image src="/loading-image.png" alt="iPrint" width={350} height={175} priority className="w-full h-auto object-contain" />
+            </motion.div>
+            
+            {/* النص والنقاط المتحركة - مفروض اتجاهها LTR للثبات */}
+            <div dir="ltr" className="flex items-center gap-1 text-xl font-bold tracking-[0.3em] text-slate-500 dark:text-slate-400">
+              <span>LOADING</span>
+              <motion.span 
+                animate={{ opacity: [0, 1, 0] }} 
+                transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+              >
+                ...
+              </motion.span>
+            </div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

@@ -19,7 +19,7 @@ const categories = [
     icon: "🖼️",
     items: [
       { type: "raw", value: "Rollup Banners" },
-      { type: "raw", value: "X Banners" },
+      { type: "raw", value: "Banners" },
       { type: "key", value: "astandat-maardh-kharjyh" },
       { type: "key", value: "astandat-dakhl-alshrkat" },
       { type: "key", value: "tsmym-shl-alfk-walnql" },
@@ -39,7 +39,7 @@ const galleryImages = [
 const bannerTypes = [
   { name: "Roll Up", descKey: "shlh-alhml-waltrkyb-mthalyh-llmaardh-walfaalyat", icon: "🎞️" },
   { name: "Pop Up", descKey: "khlfyat-ardh-kbyrh-wantbaa-ahtrafy-qwy", icon: "📸" },
-  { name: "X Banner", descKey: "aqtsadyh-wkhfyfh-tustkhdm-fy-almhlat-walmkatb", icon: "✖️" },
+  { name: "Banners", descKey: "aqtsadyh-wkhfyfh-tustkhdm-fy-almhlat-walmkatb", icon: "✖️" },
 ];
 
 export default async function SignsPage(

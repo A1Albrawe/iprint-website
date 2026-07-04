@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Rnd } from 'react-rnd';
 
-// بدلاً من المسار القديم، استخدم المسار الصحيح:
+// المسارات الخاصة بملفات الترجمة
 import en from '../../../../messages/en.json';
 import ar from '../../../../messages/ar.json';
 const dictionaries: Record<string, any> = { en, ar };
@@ -85,7 +85,7 @@ const MOCKUP_MODELS: Record<string, { id: string; name: string; width: number; h
   ],
 };
 
-export default function StudioPage({ params }: { params: { locale: string } }) {
+export default function StudioPage({ params }: { params: any }) {
   const [localeResolved, setLocaleResolved] = useState('en');
 
   useEffect(() => {
@@ -100,13 +100,12 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
 
   const isRtl = localeResolved === 'ar';
 
-  // دالة الترجمة المبسطة
-  const t = (key: string) => {
+  const t = useCallback((key: string) => {
     const dict = dictionaries[localeResolved]?.studio || dictionaries.en.studio;
     return dict[key] || key;
-  };
+  }, [localeResolved]);
 
-  const getEnhancedAITip = (category: string, isSelectedLayer: boolean, layerType: string | null, isRtl: boolean) => {
+  const getEnhancedAITip = useCallback((category: string, isSelectedLayer: boolean, layerType: string | null, isRtl: boolean) => {
     if (isSelectedLayer && layerType === 'text') {
       return t('ai_tip_text_resize') || (isRtl 
         ? '💡⚡ روبوت التصميم: تم ضبط النص ليتمدد بحرية! تأكد فقط من اختيار لون مناسب.' 
@@ -140,10 +139,9 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
           ? '🤖 ابدأ بإضافة نصوص أو رفع شعارك، وضع كل عنصر في المكان الآمن داخل المعاينة.' 
           : '🤖 Start by adding text or uploading your logo, placing elements inside the safe area.');
     }
-  };
+  }, [t]);
 
-  // ربط مصفوفة الخطوط بدوال الترجمة
-  const FONTS = [
+  const FONTS = useMemo(() => [
     { name: t('font_default'), value: 'Arial, sans-serif' },
     { name: t('font_cairo'), value: "'Cairo', sans-serif" },
     { name: t('font_tajawal'), value: "'Tajawal', sans-serif" },
@@ -154,10 +152,10 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
     { name: t('font_oswald'), value: "'Oswald', sans-serif" },
     { name: t('font_poppins'), value: "'Poppins', sans-serif" },
     { name: t('font_lobster'), value: "'Lobster', cursive" },
-  ];
+  ], [t]);
   
   const [selectedCategory, setSelectedCategory] = useState(PRODUCT_CATEGORIES[0].id);
-  const currentModels = MOCKUP_MODELS[selectedCategory] || [];
+  const currentModels = useMemo(() => MOCKUP_MODELS[selectedCategory] || [], [selectedCategory]);
   
   const [selectedMockup, setSelectedMockup] = useState(currentModels[0] || null);
   
@@ -185,7 +183,7 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
   const canvasWidth = customWidthCm * CM_TO_PX;
   const canvasHeight = customHeightCm * CM_TO_PX;
 
-  const selectedLayer = layers.find(l => l.id === selectedLayerId);
+  const selectedLayer = useMemo(() => layers.find(l => l.id === selectedLayerId), [layers, selectedLayerId]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -208,7 +206,7 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
         setCustomHeightCm(Math.round(models[0].height / CM_TO_PX));
       }
     }
-  }, [selectedCategory, selectedLayerId, layers, isRtl, localeResolved]);
+  }, [selectedCategory, selectedLayerId, layers, isRtl, localeResolved, getEnhancedAITip]);
 
   useEffect(() => {
     if (selectedMockup) {
@@ -217,11 +215,11 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
     }
   }, [selectedMockup]);
 
-  const saveState = (newLayers: Layer[]) => {
+  const saveState = useCallback((newLayers: Layer[]) => {
     const updatedHistory = history.slice(0, historyIndex + 1);
     setHistory([...updatedHistory, newLayers]);
     setHistoryIndex(updatedHistory.length);
-  };
+  }, [history, historyIndex]);
 
   const undo = () => {
     if (historyIndex > 0) {
@@ -239,15 +237,15 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
 
   const addTextLayer = () => {
     if (!textInput.trim()) return;
-    const estimatedWidth = Math.max(textInput.length * fontSize * 0.6, 100);
-    const estimatedHeight = Math.max(fontSize * 1.5, 40);
+    const estimatedWidth = Math.max(textInput.length * fontSize * 0.6, 140);
+    const estimatedHeight = Math.max(fontSize * 1.4, 45);
 
     const newLayer: Layer = {
       id: Date.now().toString(),
       type: 'text',
       content: textInput,
-      x: 30,
-      y: 30,
+      x: Math.max(10, (canvasWidth - estimatedWidth) / 2),
+      y: Math.max(10, (canvasHeight - estimatedHeight) / 2),
       width: estimatedWidth,
       height: estimatedHeight,
       rotation: 0,
@@ -279,8 +277,8 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
                 id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
                 type: 'image',
                 content: ev.target!.result as string,
-                x: 20 + Math.random() * 30, 
-                y: 20 + Math.random() * 30,
+                x: Math.max(10, (canvasWidth - imgWidth) / 2), 
+                y: Math.max(10, (canvasHeight - imgHeight) / 2),
                 width: imgWidth,
                 height: imgHeight,
                 rotation: 0,
@@ -301,29 +299,43 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
     }
   };
 
-  const updateLayerPositionAndSize = (id: string, x: number, y: number, width: number, height: number) => {
-    const updated = layers.map(l => l.id === id ? { ...l, x, y, width, height } : l);
-    setLayers(updated);
-    saveState(updated);
-  };
+  const updateLayerPositionAndSize = useCallback((id: string, x: number, y: number, width: number, height: number) => {
+    setLayers(prevLayers => {
+      const updated = prevLayers.map(l => {
+        if (l.id === id) {
+          // إذا كان نصاً، نقوم بتحديث حجم الخط ليتناسب ديناميكياً مع السحب لمنع تشوه التصميم والتداخل
+          if (l.type === 'text') {
+            const calculatedFontSize = Math.max(10, Math.floor(height / 1.3));
+            return { ...l, x, y, width, height, fontSize: calculatedFontSize };
+          }
+          return { ...l, x, y, width, height };
+        }
+        return l;
+      });
+      saveState(updated);
+      return updated;
+    });
+  }, [saveState]);
 
-  const updateSelectedLayer = (updates: Partial<Layer>) => {
+  const updateSelectedLayer = useCallback((updates: Partial<Layer>) => {
     if (!selectedLayerId) return;
     
-    let additionalUpdates = { ...updates };
-    if (additionalUpdates.fontSize) {
-      const currentLayer = layers.find(l => l.id === selectedLayerId);
-      if (currentLayer && currentLayer.type === 'text') {
-        const newFontSize = additionalUpdates.fontSize;
-        additionalUpdates.width = Math.max(currentLayer.content.length * newFontSize * 0.6, 100);
-        additionalUpdates.height = Math.max(newFontSize * 1.5, 40);
+    setLayers(prevLayers => {
+      let additionalUpdates = { ...updates };
+      if (additionalUpdates.fontSize) {
+        const currentLayer = prevLayers.find(l => l.id === selectedLayerId);
+        if (currentLayer && currentLayer.type === 'text') {
+          const newFontSize = additionalUpdates.fontSize;
+          additionalUpdates.width = Math.max(currentLayer.content.length * newFontSize * 0.6, 100);
+          additionalUpdates.height = Math.max(newFontSize * 1.4, 40);
+        }
       }
-    }
 
-    const updated = layers.map(l => l.id === selectedLayerId ? { ...l, ...additionalUpdates } : l);
-    setLayers(updated);
-    saveState(updated);
-  };
+      const updated = prevLayers.map(l => l.id === selectedLayerId ? { ...l, ...additionalUpdates } : l);
+      saveState(updated);
+      return updated;
+    });
+  }, [selectedLayerId, saveState]);
 
   const bringToFront = () => {
     if (!selectedLayerId) return;
@@ -345,7 +357,16 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
     setSelectedLayerId(null);
   };
 
-  const generateSvgString = () => {
+  const escapeSvgText = (text: string) => {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  };
+
+  const generateSvgString = useCallback(() => {
     let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasWidth}" height="${canvasHeight}" viewBox="0 0 ${canvasWidth} ${canvasHeight}">`;
     svgContent += `<defs><style type="text/css">@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&amp;family=Tajawal:wght@400;700;900&amp;family=Roboto:wght@400;700;900&amp;family=Montserrat&amp;family=Playfair+Display&amp;family=Oswald&amp;family=Poppins&amp;family=Lobster&amp;display=swap');</style></defs>`;
     svgContent += `<rect width="100%" height="100%" fill="#ffffff"/>`;
@@ -355,21 +376,26 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
       const centerX = layer.x + layer.width / 2;
       const centerY = layer.y + layer.height / 2;
       
+      // استخدام عنصر الحاوية <g> لنقل وتدوير العناصر بشكل مركزي ثابت ومحمي من الإزاحة الناتجة عن الـ Canvas render
       if (layer.type === 'text') {
-        svgContent += `<text x="${centerX}" y="${centerY}" fill="${layer.color || '#000'}" font-size="${layer.fontSize || 20}" font-family="${layer.fontFamily || 'Arial'}" font-weight="${layer.fontWeight || 'normal'}" text-anchor="middle" dominant-baseline="central" transform="rotate(${layer.rotation} ${centerX} ${centerY})">${layer.content}</text>`;
+        svgContent += `<g transform="translate(${centerX}, ${centerY}) rotate(${layer.rotation})">`;
+        svgContent += `<text x="0" y="0" fill="${layer.color || '#000'}" font-size="${layer.fontSize || 20}" font-family="${layer.fontFamily || 'Arial'}" font-weight="${layer.fontWeight || 'normal'}" text-anchor="middle" dominant-baseline="central">${escapeSvgText(layer.content)}</text>`;
+        svgContent += `</g>`;
       } else if (layer.type === 'image') {
-        svgContent += `<image href="${layer.content}" x="${layer.x}" y="${layer.y}" width="${layer.width}" height="${layer.height}" transform="rotate(${layer.rotation} ${centerX} ${centerY})" />`;
+        svgContent += `<g transform="translate(${centerX}, ${centerY}) rotate(${layer.rotation})">`;
+        svgContent += `<image href="${layer.content}" x="${-layer.width / 2}" y="${-layer.height / 2}" width="${layer.width}" height="${layer.height}" />`;
+        svgContent += `</g>`;
       }
     });
     
     svgContent += `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="48" fill="#000000" opacity="${watermarkOpacity}" transform="rotate(12, ${canvasWidth/2}, ${canvasHeight/2})">iPrint</text>`;
     svgContent += `</svg>`;
     return svgContent;
-  };
+  }, [layers, canvasWidth, canvasHeight, watermarkOpacity]);
 
   const handleDownloadPreview = () => {
     const svgString = generateSvgString();
-    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     
     const image = new Image();
@@ -379,7 +405,11 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
       const ctx = canvas.getContext('2d');
-      ctx?.drawImage(image, 0, 0);
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        ctx.drawImage(image, 0, 0);
+      }
       
       const pngUrl = canvas.toDataURL('image/png');
       const downloadLink = document.createElement('a');
@@ -397,7 +427,7 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
     }
 
     const svgString = generateSvgString();
-    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     
     const image = new Image();
@@ -407,7 +437,11 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
       const ctx = canvas.getContext('2d');
-      ctx?.drawImage(image, 0, 0);
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        ctx.drawImage(image, 0, 0);
+      }
       
       canvas.toBlob((blobOutput) => {
         if (blobOutput) {
@@ -565,11 +599,11 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
             <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col gap-1">
                 <span className="text-[8px] text-gray-400 dark:text-gray-500">{t('width')}</span>
-                <input type="number" min="1" max="40" value={customWidthCm} onChange={(e) => setCustomWidthCm(Number(e.target.value))} className="w-full p-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[11px] text-center font-mono text-gray-800 dark:text-gray-200" />
+                <input type="number" min="1" max="100" value={customWidthCm} onChange={(e) => setCustomWidthCm(Number(e.target.value))} className="w-full p-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[11px] text-center font-mono text-gray-800 dark:text-gray-200" />
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[8px] text-gray-400 dark:text-gray-500">{t('height')}</span>
-                <input type="number" min="1" max="40" value={customHeightCm} onChange={(e) => setCustomHeightCm(Number(e.target.value))} className="w-full p-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[11px] text-center font-mono text-gray-800 dark:text-gray-200" />
+                <input type="number" min="1" max="100" value={customHeightCm} onChange={(e) => setCustomHeightCm(Number(e.target.value))} className="w-full p-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[11px] text-center font-mono text-gray-800 dark:text-gray-200" />
               </div>
             </div>
           </div>
@@ -689,15 +723,15 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
                     );
                   }}
                   bounds="parent"
-                  lockAspectRatio={false}
-                  minWidth={30}
-                  minHeight={20}
+                  lockAspectRatio={layer.type === 'image'}
+                  minWidth={40}
+                  minHeight={25}
                   onClick={() => setSelectedLayerId(layer.id)}
                   enableResizing={{
-                    top: false, right: false, bottom: false, left: false,
-                    topRight: false, bottomRight: false, bottomLeft: false, topLeft: false
+                    top: true, right: true, bottom: true, left: true,
+                    topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
                   }}
-                  className={`absolute z-10 flex items-center justify-center select-none cursor-move ${selectedLayerId === layer.id ? 'z-50' : 'z-10'}`}
+                  className={`absolute flex items-center justify-center select-none cursor-move ${selectedLayerId === layer.id ? 'z-50' : 'z-10'}`}
                   style={{ zIndex: layer.zIndex }}
                 >
                   <div 
@@ -718,7 +752,7 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
                             fontFamily: layer.fontFamily, 
                             fontWeight: layer.fontWeight as any 
                           }} 
-                          className="leading-none drop-shadow-sm w-max text-center break-words"
+                          className="leading-none drop-shadow-sm w-max text-center break-words max-w-full"
                         >
                           {layer.content}
                         </p>
@@ -842,7 +876,7 @@ export default function StudioPage({ params }: { params: { locale: string } }) {
               <div className="grid grid-cols-3 gap-1.5 pt-2">
                 <button onClick={bringToFront} className="p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-[10px] font-bold border border-gray-200 dark:border-gray-700 transition-all">⬆️ {t('btn_forward')}</button>
                 <button onClick={sendToBack} className="p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-[10px] font-bold border border-gray-200 dark:border-gray-700 transition-all">⬇️ {t('btn_backward')}</button>
-                <button onClick={deleteLayer} className="p-2 red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg text-[10px] font-bold border border-red-200 dark:border-red-800 transition-all">🗑️ {t('btn_delete')}</button>
+                <button onClick={deleteLayer} className="p-2 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg text-[10px] font-bold border border-red-200 dark:border-red-800 transition-all">🗑️ {t('btn_delete')}</button>
               </div>
             </div>
           ) : (
